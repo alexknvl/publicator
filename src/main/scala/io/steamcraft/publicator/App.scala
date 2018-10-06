@@ -78,19 +78,18 @@ object RuleAlg {
 }
 
 object App {
-  def using[R, Z](init: => R)(release: R => Unit)(body: R => Z): Option[Z] = {
+  def using[R, Z](init: => R)(release: R => Unit)(body: R => Z): Z = {
     var r: Option[R] = None
     try {
       r = Some(init)
-      Some(body(r.get))
-    } catch {
-      case NonFatal(e) =>
-        r match {
-          case None => ()
-          case Some(res) =>
-            release(res)
-        }
-        None
+      body(r.get)
+    } finally {
+      r match {
+        case None => ()
+        case Some(res) =>
+          release(res)
+          r = None
+      }
     }
   }
 
